@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite';
 
-export default defineConfig({
+const repoName = 'vibe-vampsuv';
+
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? `/${repoName}/` : '/',
   server: {
     port: 5173
   }
-});
+}));
