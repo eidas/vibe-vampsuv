@@ -6,6 +6,7 @@ type OrbSprite = Phaser.Physics.Arcade.Sprite & { xp: number };
 class MainScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private moveKeys!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
   private enemies!: Phaser.Physics.Arcade.Group;
   private projectiles!: Phaser.Physics.Arcade.Group;
   private orbs!: Phaser.Physics.Arcade.Group;
@@ -27,6 +28,12 @@ class MainScene extends Phaser.Scene {
 
   create() {
     this.cursors = this.input.keyboard!.createCursorKeys();
+    this.moveKeys = this.input.keyboard!.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D
+    }) as Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
     this.physics.world.setBounds(-600, -450, 1200, 900);
 
@@ -65,15 +72,20 @@ class MainScene extends Phaser.Scene {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     body.setAcceleration(0);
 
-    if (this.cursors.left?.isDown) {
+    const leftDown = this.cursors.left?.isDown || this.moveKeys.left.isDown;
+    const rightDown = this.cursors.right?.isDown || this.moveKeys.right.isDown;
+    const upDown = this.cursors.up?.isDown || this.moveKeys.up.isDown;
+    const downDown = this.cursors.down?.isDown || this.moveKeys.down.isDown;
+
+    if (leftDown) {
       body.setAccelerationX(-speed * 2);
-    } else if (this.cursors.right?.isDown) {
+    } else if (rightDown) {
       body.setAccelerationX(speed * 2);
     }
 
-    if (this.cursors.up?.isDown) {
+    if (upDown) {
       body.setAccelerationY(-speed * 2);
-    } else if (this.cursors.down?.isDown) {
+    } else if (downDown) {
       body.setAccelerationY(speed * 2);
     }
   }
@@ -109,7 +121,9 @@ class MainScene extends Phaser.Scene {
     if (!enemy) return;
 
     enemy.setActive(true).setVisible(true);
-    enemy.body.reset(x, y);
+    const body = enemy.body as Phaser.Physics.Arcade.Body | null;
+    if (!body) return;
+    body.reset(x, y);
     enemy.hp = 3 + Math.floor(this.stats.level / 2);
     enemy.setVelocity(0, 0);
     enemy.setData('spawnTime', this.time.now);
@@ -176,7 +190,9 @@ class MainScene extends Phaser.Scene {
     const xpValue = Phaser.Math.Between(1, 2);
     orb.xp = xpValue;
     orb.setActive(true).setVisible(true);
-    orb.body.reset(x, y);
+    const body = orb.body as Phaser.Physics.Arcade.Body | null;
+    if (!body) return;
+    body.reset(x, y);
     orb.setVelocity(0, 0);
   }
 
@@ -255,7 +271,7 @@ const config: Phaser.Types.Core.GameConfig = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 0 },
+      gravity: { x: 0, y: 0 },
       debug: false
     }
   },
