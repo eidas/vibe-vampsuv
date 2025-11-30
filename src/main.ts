@@ -70,23 +70,26 @@ class MainScene extends Phaser.Scene {
   private handleMovement() {
     const speed = 220;
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.setAcceleration(0);
+    const direction = new Phaser.Math.Vector2(0, 0);
 
-    const leftDown = this.cursors.left?.isDown || this.moveKeys.left.isDown;
-    const rightDown = this.cursors.right?.isDown || this.moveKeys.right.isDown;
-    const upDown = this.cursors.up?.isDown || this.moveKeys.up.isDown;
-    const downDown = this.cursors.down?.isDown || this.moveKeys.down.isDown;
-
-    if (leftDown) {
-      body.setAccelerationX(-speed * 2);
-    } else if (rightDown) {
-      body.setAccelerationX(speed * 2);
+    if (this.cursors.left?.isDown || this.moveKeys.left.isDown) {
+      direction.x -= 1;
+    }
+    if (this.cursors.right?.isDown || this.moveKeys.right.isDown) {
+      direction.x += 1;
+    }
+    if (this.cursors.up?.isDown || this.moveKeys.up.isDown) {
+      direction.y -= 1;
+    }
+    if (this.cursors.down?.isDown || this.moveKeys.down.isDown) {
+      direction.y += 1;
     }
 
-    if (upDown) {
-      body.setAccelerationY(-speed * 2);
-    } else if (downDown) {
-      body.setAccelerationY(speed * 2);
+    if (direction.lengthSq() > 0) {
+      direction.normalize();
+      body.setVelocity(direction.x * speed, direction.y * speed);
+    } else {
+      body.setVelocity(0, 0);
     }
   }
 
